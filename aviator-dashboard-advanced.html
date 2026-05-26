@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aviator Dashboard - Time & Range Analytics</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      border: 2px solid rgba(34, 197, 94, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      color: #22c55e;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: #cbd5e1;
+      font-size: 1rem;
+    }
+
+    .warning {
+      background: #ef4444;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    /* Time & Range Controls */
+    .controls-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 968px) {
+      .controls-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 25px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .control-card h2 {
+      color: #22c55e;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #22c55e;
+      padding-bottom: 10px;
+    }
+
+    /* Time Selector */
+    .time-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .time-btn {
+      padding: 10px 20px;
+      border: 2px solid #22c55e;
+      background: transparent;
+      color: #22c55e;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .time-btn:hover {
+      background: #22c55e;
+      color: black;
+    }
+
+    .time-btn.active {
+      background: #22c55e;
+      color: black;
+    }
+
+    /* Range Selector */
+    .range-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .range-btn {
+      padding: 10px 20px;
+      border: 2px solid #22c55e;
+      background: transparent;
+      color: #22c55e;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .range-btn:hover {
+      background: #22c55e;
+      color: black;
+    }
+
+    .range-btn.active {
+      background: #22c55e;
+      color: black;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 25px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h3 {
+      color: #22c55e;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    /* Prediction Display */
+    .prediction-box {
+      background: #0f172a;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      margin: 20px 0;
+      border: 3px dashed #22c55e;
+    }
+
+    .prediction-label {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .multiplier {
+      font-size: 4rem;
+      color: #22c55e;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .range-info {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      margin-top: 10px;
+    }
+
+    .time-info {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-top: 5px;
+    }
+
+    /* Stats Display */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .stat-box {
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #22c55e;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      color: #22c55e;
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    button.generate-btn {
+      width: 100%;
+      padding: 15px;
+      background: #22c55e;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 15px;
+    }
+
+    button.generate-btn:hover {
+      transform: scale(1.05);
+    }
+
+    button.clear-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 10px;
+    }
+
+    button.clear-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* History Section */
+    .history-section {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 25px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+    }
+
+    .history-section h2 {
+      color: #22c55e;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #22c55e;
+      padding-bottom: 10px;
+    }
+
+    .history-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .history-item {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 8px;
+      border-left: 3px solid #22c55e;
+      text-align: center;
+    }
+
+    .history-value {
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 1.3rem;
+    }
+
+    .history-meta {
+      color: #94a3b8;
+      font-size: 0.75rem;
+      margin-top: 5px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #94a3b8;
+      padding: 40px 20px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .emoji {
+      margin-right: 8px;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #22c55e;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1><span class="emoji">✈️</span>Aviator Dashboard</h1>
+      <p>Time & Range Based Prediction Analytics</p>
+      <div class="warning">⚠️ SATIRICAL PAGE — THIS IS A JOKE. NO REAL PREDICTIONS.</div>
+    </header>
+
+    <!-- Controls Section -->
+    <div class="controls-section">
+      <!-- Time Filter -->
+      <div class="control-card">
+        <h2><span class="emoji">⏰</span>Time Filter</h2>
+        <div class="time-selector">
+          <button class="time-btn active" onclick="setTimeFilter('1h')">Last 1h</button>
+          <button class="time-btn" onclick="setTimeFilter('24h')">Last 24h</button>
+          <button class="time-btn" onclick="setTimeFilter('7d')">Last 7d</button>
+          <button class="time-btn" onclick="setTimeFilter('all')">All Time</button>
+        </div>
+        <div style="margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 8px; text-align: center; color: #94a3b8;">
+          Active: <strong id="activeTime" style="color: #22c55e;">Last 1 Hour</strong>
+        </div>
+      </div>
+
+      <!-- Range Filter -->
+      <div class="control-card">
+        <h2><span class="emoji">📊</span>Multiplier Range</h2>
+        <div class="range-selector">
+          <button class="range-btn active" onclick="setRange(1, 5)">1-5x</button>
+          <button class="range-btn" onclick="setRange(5, 10)">5-10x</button>
+          <button class="range-btn" onclick="setRange(10, 20)">10-20x</button>
+          <button class="range-btn" onclick="setRange(20, 50)">20-50x</button>
+        </div>
+        <div style="margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 8px; text-align: center; color: #94a3b8;">
+          Range: <strong id="rangeDisplay" style="color: #22c55e;">1.00x - 5.00x</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard-grid">
+      <!-- Prediction Card -->
+      <div class="card">
+        <h3><span class="emoji">🎯</span>Live Prediction</h3>
+        <div class="prediction-box">
+          <div class="prediction-label">Current Multiplier</div>
+          <div class="multiplier" id="prediction">2.17x</div>
+          <div class="range-info" id="rangeInfo">Range: 1.00x - 5.00x</div>
+          <div class="time-info" id="timeInfo">Time: Last 1 Hour</div>
+        </div>
+        <button class="generate-btn" onclick="generatePrediction()">🔄 Generate</button>
+      </div>
+
+      <!-- Statistics Card -->
+      <div class="card">
+        <h3><span class="emoji">📈</span>Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Total</div>
+            <div class="stat-value" id="totalCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Average</div>
+            <div class="stat-value" id="avgMultiplier">0.00x</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Highest</div>
+            <div class="stat-value" id="maxMultiplier">0.00x</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Lowest</div>
+            <div class="stat-value" id="minMultiplier">0.00x</div>
+          </div>
+        </div>
+        <button class="clear-btn" onclick="clearHistory()">🗑️ Clear All</button>
+      </div>
+
+      <!-- Time Window Stats -->
+      <div class="card">
+        <h3><span class="emoji">⏱️</span>Time Window Stats</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Predictions (Window)</div>
+            <div class="stat-value" id="windowCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Avg (Window)</div>
+            <div class="stat-value" id="windowAvg">0.00x</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">High (Window)</div>
+            <div class="stat-value" id="windowMax">0.00x</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Low (Window)</div>
+            <div class="stat-value" id="windowMin">0.00x</div>
+          </div>
+        </div>
+        <div style="margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 8px; font-size: 0.85rem; color: #94a3b8;">
+          <strong>Current Filter:</strong><br>
+          <span id="filterInfo">Time: Last 1 Hour | Range: 1-5x</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="history-section">
+      <h2><span class="emoji">📜</span>Prediction History</h2>
+      <div class="history-container" id="historyContainer">
+        <div class="empty-state">No predictions yet. Generate one to get started!</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      This parody page is for entertainment only.<br>
+      Real gambling outcomes are random and cannot be predicted.<br>
+      <strong>⚠️ Disclaimer:</strong> This is a satirical tool with no real predictive power.
+    </div>
+  </div>
+
+  <script>
+    let minRange = 1;
+    let maxRange = 5;
+    let currentTimeFilter = '1h';
+    let history = JSON.parse(localStorage.getItem('aviatorHistory')) || [];
+
+    const timeFilterLabels = {
+      '1h': 'Last 1 Hour',
+      '24h': 'Last 24 Hours',
+      '7d': 'Last 7 Days',
+      'all': 'All Time'
+    };
+
+    function setTimeFilter(filter) {
+      currentTimeFilter = filter;
+      document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('activeTime').textContent = timeFilterLabels[filter];
+      updateStats();
+      updateWindowStats();
+    }
+
+    function setRange(min, max) {
+      minRange = min;
+      maxRange = max;
+      document.querySelectorAll('.range-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('rangeDisplay').textContent = `${min.toFixed(2)}x - ${max.toFixed(2)}x`;
+      document.getElementById('rangeInfo').textContent = `Range: ${min.toFixed(2)}x - ${max.toFixed(2)}x`;
+      document.getElementById('filterInfo').textContent = `Time: ${timeFilterLabels[currentTimeFilter]} | Range: ${min}-${max}x`;
+      generatePrediction();
+      updateWindowStats();
+    }
+
+    function generatePrediction() {
+      const value = (Math.random() * (maxRange - minRange) + minRange).toFixed(2);
+      document.getElementById('prediction').innerText = value + 'x';
+      
+      const now = new Date();
+      history.unshift({
+        value: parseFloat(value),
+        time: now.toLocaleTimeString(),
+        date: now.toLocaleDateString(),
+        timestamp: now.getTime(),
+        range: `${minRange}-${maxRange}`
+      });
+
+      if (history.length > 100) {
+        history.pop();
+      }
+
+      localStorage.setItem('aviatorHistory', JSON.stringify(history));
+      updateHistory();
+      updateStats();
+      updateWindowStats();
+    }
+
+    function getFilteredHistory() {
+      const now = Date.now();
+      let cutoffTime = 0;
+
+      switch (currentTimeFilter) {
+        case '1h':
+          cutoffTime = now - (60 * 60 * 1000);
+          break;
+        case '24h':
+          cutoffTime = now - (24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          cutoffTime = now - (7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'all':
+          cutoffTime = 0;
+          break;
+      }
+
+      return history.filter(item => item.timestamp >= cutoffTime);
+    }
+
+    function updateHistory() {
+      const container = document.getElementById('historyContainer');
+      
+      if (history.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">No predictions yet.</div>';
+        return;
+      }
+
+      container.innerHTML = history.slice(0, 20).map(item => `
+        <div class="history-item">
+          <div class="history-value">${item.value.toFixed(2)}x</div>
+          <div class="history-meta">${item.time}</div>
+          <div class="history-meta">${item.range}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      const count = history.length;
+      document.getElementById('totalCount').textContent = count;
+
+      if (count === 0) {
+        document.getElementById('avgMultiplier').textContent = '0.00x';
+        document.getElementById('maxMultiplier').textContent = '0.00x';
+        document.getElementById('minMultiplier').textContent = '0.00x';
+        return;
+      }
+
+      const values = history.map(h => h.value);
+      const avg = (values.reduce((a, b) => a + b, 0) / count).toFixed(2);
+      const max = Math.max(...values).toFixed(2);
+      const min = Math.min(...values).toFixed(2);
+
+      document.getElementById('avgMultiplier').textContent = avg + 'x';
+      document.getElementById('maxMultiplier').textContent = max + 'x';
+      document.getElementById('minMultiplier').textContent = min + 'x';
+    }
+
+    function updateWindowStats() {
+      const filtered = getFilteredHistory();
+      const count = filtered.length;
+      document.getElementById('windowCount').textContent = count;
+
+      if (count === 0) {
+        document.getElementById('windowAvg').textContent = '0.00x';
+        document.getElementById('windowMax').textContent = '0.00x';
+        document.getElementById('windowMin').textContent = '0.00x';
+        return;
+      }
+
+      const values = filtered.map(h => h.value);
+      const avg = (values.reduce((a, b) => a + b, 0) / count).toFixed(2);
+      const max = Math.max(...values).toFixed(2);
+      const min = Math.min(...values).toFixed(2);
+
+      document.getElementById('windowAvg').textContent = avg + 'x';
+      document.getElementById('windowMax').textContent = max + 'x';
+      document.getElementById('windowMin').textContent = min + 'x';
+    }
+
+    function clearHistory() {
+      if (confirm('Are you sure you want to clear all history?')) {
+        history = [];
+        localStorage.removeItem('aviatorHistory');
+        updateHistory();
+        updateStats();
+        updateWindowStats();
+      }
+    }
+
+    window.addEventListener('load', () => {
+      updateHistory();
+      updateStats();
+      updateWindowStats();
+    });
+  </script>
+</body>
+</html>
